@@ -1,0 +1,5 @@
+Thumbs.db
+tmp/
+separator_generator/build-tmp
+separator_generator/data
+font_calibration/build-tmp
