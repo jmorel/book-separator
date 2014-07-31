@@ -6,50 +6,28 @@ Since precise font-size selection proved to be very tricky, a second scrip is in
 
 ## Fonts
 
-Candidates were selected for their (perceived) relative importance, not on aesthetics. This is why you have _Comic Sans_ in the list.
-There clearly is a bias towards recent font, those that were bundled with computers ever since the mid 90s but even more so towards those that were part of _Microsoft Core Fonts For The Web_ and that were therefore massively used all over the internet before the advent of broadband web fonts and which shaped the world we read every day.
+Fonts come from the 100 best typefaces website (http://www.100besttypefaces.com/), taking the highest ranking one for each letter.
 
-I tried to include diversified fonts : display fonts, serif and sans-serif, monospaced
-Code / Newspaper / Web / Magazines / Graphic art / 
-
-The fonts included in the final version are in bold characters.
-
-Letter  | Font name     | Published in  | Authors
-:-----  | :--------     | :-----------  | :------
-a       | Arial         | 1982          | Robin Nicholas, Patricia Saunders
-b       | Bebas Neue    |               |
-        | Banco         | 1951          | Roger Excoffon
-c       | Comic Sans    | 1994          | Vincent Connare
-        | Choc          | 1955          | Roger Excoffon
-        | Courier       | 1955          | Howard Kettler
-        | Consolas      
-d       | Droid Serif
-        | Droid
-e       |
-f       | Futura        | 1927          | Paul Renner
-g       | Garamond
-        | Georgia       | 1993          | Matthew Carter
-h       | Helvetica
-i       |
-j       |
-k       |
-l       | Lato
-        | League Gothic
-        | Lobster
-m       | Museo
-        | Mistral       | 1953          | Roger Excoffon
-n       |
-o       | Open Sans
-p       |
-q       |
-r       | Raleway
-        | Rokkit
-        | Roboto
-s       |
-t       | Times New Roman
-u       |
-v       | Verdana   | 1996              | Matthew Carter
-w       | Wingdings
-x       |
-y       |
-z       |
+* a akzidenz grotesk 7
+* b bodoni 4
+* c caslon 47
+* d din 20
+* e eurostile 33
+* f frutiger 3
+* g garamond 2
+* h helvetica 1
+* i interstate 14
+* j joanna 36
+* k kabel 78
+* l lucida 24
+* m meta 18
+* n news gothic 64
+* o officina 8
+* p palatino 38
+* q quadraat 69
+* r rockwell 16
+* s sabon 25
+* t times 6
+* u univers 10
+* w walbaum 17
+* z zapfino 26
