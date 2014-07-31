@@ -7,8 +7,7 @@ boolean DEV_MODE = false;
 int letter_index = 0;
 boolean init = true;
 boolean same_keypress = false;
-
-
+boolean flipped = false;
 
 float resolution = 72.0; // dpi
 float mm2inch = 25.4; // 1 inch = 25.4 mm
@@ -44,7 +43,7 @@ void setup() {
     if (DEV_MODE) {
         size(int(px(BOARD_WIDTH)), int(px(BOARD_HEIGHT)));
     } else {
-        size(int(px(BOARD_WIDTH)), int(px(BOARD_HEIGHT)), PDF, "test.pdf");
+        size(int(px(BOARD_WIDTH)), int(px(BOARD_HEIGHT)), PDF, "separators.pdf");
     }
 
     separators = new ArrayList<Separator>();
@@ -52,21 +51,25 @@ void setup() {
     separators.add(new Separator("Georgia", "G", "Matthew Carter", "1993", "Georgia", 0.83, 0.76, 0.53, 0.98));
 }
 
-void draw() 
+void draw()
 {
     if (!DEV_MODE) {
         PGraphicsPDF pdf = (PGraphicsPDF) g;  // Get the renderer
         Separator sep;
         for (int i = 0; i < separators.size(); i++) {
             sep = this.separators.get(i);
-            sep.draw();
+            if (i > 0) {
+                pdf.nextPage();
+            }
+            sep.draw(false);
             pdf.nextPage();
+            sep.draw(true);
         }
         exit();
     } else {
         if (init) {
             init = false;
-            separators.get(letter_index).draw();
+            separators.get(letter_index).draw(flipped);
         }
 
         if (!keyPressed) {
@@ -75,19 +78,22 @@ void draw()
         if (keyPressed && !same_keypress) {
             same_keypress = true;
 
-            if (key == 'n') { 
+            if (key == 'n') {
                 letter_index++;
                 if (letter_index >= separators.size()) {
                     letter_index = 0;
                 }
-            } 
+            }
             if (key == 'p') {
                 letter_index--;
                 if (letter_index < 0) {
                     letter_index = separators.size()-1;
                 }
             }
-            separators.get(letter_index).draw();
+            if (key == 'f') {
+                flipped = !flipped;
+            }
+            separators.get(letter_index).draw(flipped);
         }
     }
 }
@@ -99,8 +105,8 @@ class Separator {
     float scalar_ascent, scalar_caps, scalar_xheight, scalar_descent;
 
     // constructor
-    Separator(String font_name, String main_letter, String author, String year, String font_display_name, 
-        float scalar_ascent, float scalar_caps, float scalar_xheight, float scalar_descent) 
+    Separator(String font_name, String main_letter, String author, String year, String font_display_name,
+        float scalar_ascent, float scalar_caps, float scalar_xheight, float scalar_descent)
     {
         // import font into project
         this.font = createFont(font_name, LETTER_SIZE);
@@ -118,23 +124,30 @@ class Separator {
         this.font_display_name = font_display_name;
     }
 
-    void draw() {
+    void draw()
+    {
+        this.draw(false);
+    }
+
+    void draw(boolean flipped) {
         // white background
         background(255);
         // set font
         textFont(this.font);
-        // draw various elements
-        this.draw_font_name();
 
+        // draw various elements
+        this.draw_font_name(flipped);
+
+        // font size calculation moved here to avoid calculating twice the same value (little optimization)
         this.set_text_size(this.author, FONT_NAME_MAX_WIDTH, LETTER_SIZE);
-        this.draw_author();
-        this.draw_year();
-        
-        this.draw_alphabet();
-        this.draw_main_letter();
+        this.draw_author(flipped);
+        this.draw_year(flipped);
+
+        this.draw_alphabet(flipped);
+        this.draw_main_letter(flipped);
     }
 
-    void draw_alphabet()
+    void draw_alphabet(boolean flipped)
     {
 
         this.set_text_size(LETTER_SIZE);
@@ -142,6 +155,11 @@ class Separator {
         stroke(0, 50);
         float x_start = px(ALPHABET_OFFSET_X);
         float x_end = px(ALPHABET_OFFSET_X + 6 * LETTER_SLOT_SIZE);
+        if (flipped) {
+            float x_start_tmp = x_start;
+            x_start = px(BOARD_WIDTH) - x_end;
+            x_end = px(BOARD_WIDTH) - x_start_tmp;
+        }
         float y_baseline, y_xheight, y_ascent, y_descent;
         for (int row = 0; row < 5; row++) {
             y_baseline = px(ALPHABET_OFFSET_Y + row * LETTER_SLOT_SIZE + (LETTER_SLOT_SIZE - LETTER_SIZE) / 2) + this.ascent();
@@ -152,15 +170,15 @@ class Separator {
             // always displayed : baseline and xheight
             line(x_start, y_baseline, x_end, y_baseline);
             line(x_start, y_xheight, x_end, y_xheight);
-            // ascent not displayed on row 3
+            // ascent not displayed on rows 2, 3 and 4
             if (row != 2 && row != 3 && row != 4) {
                 line(x_start, y_ascent, x_end, y_ascent);
             }
-            // descent not displayed on first row
+            // descent not displayed on first and third row
             if (row != 0 && row !=3) {
                 line(x_start, y_descent, x_end, y_descent);
             }
-        } 
+        }
 
         // draw letters
         textAlign(CENTER, BASELINE);
@@ -175,7 +193,7 @@ class Separator {
             float y = px(ALPHABET_OFFSET_Y + row * LETTER_SLOT_SIZE + (LETTER_SLOT_SIZE - LETTER_SIZE) / 2);
             float baseline = y + this.ascent();
 
-            float x = px(ALPHABET_OFFSET_X + (col + 0.5) * LETTER_SLOT_SIZE);
+            float x = x_start + px((col + 0.5) * LETTER_SLOT_SIZE);
             // write to canvas
             fill(0);
             text(letters[i], x, baseline);
@@ -183,45 +201,60 @@ class Separator {
     }
 
 
-    void draw_main_letter()
+    void draw_main_letter(boolean flipped)
     {
         // main letter
         this.set_caps_size(this.main_letter, MAIN_LETTER_MAX_WIDTH, MAIN_LETTER_MAX_HEIGHT);
-        //textMode(SHAPE);
-        textAlign(RIGHT, BASELINE);
+        if (flipped) {
+            textAlign(LEFT, BASELINE);
+        } else {
+            textAlign(RIGHT, BASELINE);
+        }
         noFill();
         stroke(0, 0.5);
-        rect(px(MAIN_LETTER_OFFSET_X), px(MAIN_LETTER_OFFSET_Y), px(MAIN_LETTER_MAX_WIDTH), px(MAIN_LETTER_MAX_HEIGHT));
-        float y = MAIN_LETTER_OFFSET_Y + MAIN_LETTER_MAX_HEIGHT; // + (MAIN_LETTER_MAX_HEIGHT/2) - (font_size - textAscent());
+        float x = px(MAIN_LETTER_OFFSET_X + MAIN_LETTER_MAX_WIDTH);
+        if (flipped) {
+            x = px(BOARD_WIDTH) - x;
+        }
+        float y = px(MAIN_LETTER_OFFSET_Y + MAIN_LETTER_MAX_HEIGHT);
         fill(0);
-        text(this.main_letter, px(MAIN_LETTER_OFFSET_X + MAIN_LETTER_MAX_WIDTH), px(y));
+        text(this.main_letter, x, y);
 
     }
 
-    void draw_font_name()
+    void draw_font_name(boolean flipped)
     {
         fill(0);
         this.set_text_size(this.font_display_name, FONT_NAME_MAX_WIDTH, FONT_NAME_MAX_HEIGHT);
         textAlign(LEFT, BASELINE);
         float x = px(FONT_NAME_OFFSET_X);
+        if (flipped) {
+            x = px (BOARD_WIDTH - FONT_NAME_OFFSET_X - FONT_NAME_MAX_WIDTH);
+        }
         float baseline = px(FONT_NAME_OFFSET_Y) + this.ascent();
-        text(this.font_display_name, x, baseline); 
+        text(this.font_display_name, x, baseline);
     }
 
-    void draw_author()
+    void draw_author(boolean flipped)
     {
         fill(0);
         textAlign(LEFT, BASELINE);
         float x = px(FONT_NAME_OFFSET_X);
+        if (flipped) {
+            x = px(BOARD_WIDTH - FONT_NAME_OFFSET_X - FONT_NAME_MAX_WIDTH);
+        }
         float baseline = px(AUTHOR_BASELINE);
         text(this.author, x, baseline);
     }
 
-    void draw_year()
+    void draw_year(boolean flipped)
     {
         fill(0);
         textAlign(LEFT, BASELINE);
         float x = px(FONT_NAME_OFFSET_X);
+        if (flipped) {
+            x = px(BOARD_WIDTH - FONT_NAME_OFFSET_X - FONT_NAME_MAX_WIDTH);
+        }
         float baseline = px(DATE_BASELINE);
         text(this.year, x, baseline);
     }
